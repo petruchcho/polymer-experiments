@@ -1,0 +1,27 @@
+{
+  "name": "pwa2",
+  "description": "sss",
+  "main": "index.html",
+  "authors": [
+    "Egor Ponomarev <egorponomarev.petruchcho@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~1.2.0",
+    "polymer-starter-kit": "PolymerElements/polymer-starter-kit#^3.0.1",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7",
+    "app-layout": "PolymerElements/app-layout#^1.0.1"
+  },
+  "resolutions": {
+    "polymer": "~1.2.0",
+    "webcomponentsjs": "^0.7.20"
+  }
+}

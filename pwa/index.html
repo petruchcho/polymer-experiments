@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Polymer Application</title>
+    <script src="/bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="bower_components/yo-message.js" type="text/javascript"></script>
+
+    <link rel="import" href="/bower_components/polymer/polymer.html">
+    <link rel="import" href="/bower_components/paper-toolbar/paper-toolbar.html">
+    <link rel="import" href="/bower_components/paper-material/paper-material.html">
+
+    <link rel="import" href="/bower_components/paper-input/paper-input.html">
+    <link rel="import" href="/bower_components/paper-button/paper-button.html">
+    <link rel="import" href="/bower_components/paper-fab/paper-fab.html">
+    <link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="/bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+    <link rel="import" href="/bower_components/paper-button/paper-button.html">
+
+    <link href="/bower_components/iron-icons/iron-icons.html" rel="import">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        margin: 0;
+        background-color: #ededed;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .chatContent {
+        height: 100%;
+        background-color: white;
+        left: 50%;
+        width: 50%;
+        -webkit-transform: translate(-50%, -0%);
+        transform: translate(-50%, -0%);
+
+        min-height: 100vh;
+        min-width: 800px;
+    }
+
+    /*::-webkit-scrollbar {*/
+    /*display: none;*/
+    /*}*/
+
+    #header {
+        position: fixed;
+        width: 100%;
+        z-index: 2000;
+    }
+
+    .flex-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #b {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+    }
+
+    #chatMessage {
+        padding: 24px 24px 24px 180px;
+    }
+
+    #divider {
+        height: 1px;
+        background: #ededed;
+    }
+</style>
+
+<body>
+<div id="header">
+    <paper-toolbar id="toolbar" elevation="2">
+        <div class="title">My Toolbar</div>
+    </paper-toolbar>
+</div>
+
+<paper-dialog id="dialog" on-iron-overlay-closed="onDialogDismissed">
+    <h2>Header</h2>
+    <paper-dialog-scrollable>
+        Enter your name
+        <paper-input label="Awesome user" id="username"></paper-input>
+    </paper-dialog-scrollable>
+    <div class="buttons">
+        <paper-button dialog-confirm autofocus id="acceptName">Accept</paper-button>
+    </div>
+</paper-dialog>
+
+<div class="flex-container">
+    <paper-material elevation="3" class="chatContent">
+        <ul class="list" style="padding-top: 64px; list-style-type: none; -webkit-padding-start: 0" id="messages">
+        </ul>
+    </paper-material>
+</div>
+
+
+<paper-fab id="b" icon="add">
+</paper-fab>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+<script>
+
+    var d1 = document.getElementById('dialog');
+    d1.opened = true;
+    d1.addEventListener('iron-overlay-closed', function (ev) {
+        var name = $('#username').val();
+        console.log(name.length);
+        if (name.length > 0) {
+            userName = name;
+        } else {
+            userName = 'Anonymous';
+        }
+        console.log(userName);
+    });
+
+    var userId = -1;
+    var userName;
+
+    $(function () {
+        var socket = io();
+        $('#b').click(function () {
+            console.log(userName);
+            socket.emit('chat message', new YoMessage(userName, new Date()));
+            return false;
+        });
+
+        socket.on('connected', function (id) {
+            if (userId < 0) {
+                userId = id;
+            }
+        });
+
+        socket.on('chat message', function (msg) {
+            addMessage(msg, true);
+        });
+
+        socket.on('batch', function (messages, id) {
+            if (id === userId) {
+                for (var i = 0; i < messages.length; i++) {
+                    addMessage(messages[i], false);
+                }
+            }
+        });
+
+        window.onscroll = function (ev) {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1) {
+                socket.emit('request batch', document.getElementById("messages").getElementsByTagName("li").length / 2, userId);
+            }
+        };
+    });
+
+    var removeMessages = function () {
+        $('#messages').empty();
+    };
+
+    var addMessage = function (msg, newOne) {
+        if (newOne) {
+            $('#messages').prepend(
+                $('<li id="chatMessage">').append(
+                    $('<h4>').text(msg.name),
+                    $('<p style="font-size: 21px">').text('YO!'),
+                    $('<p align="right" style="font-size: 12px">').text(msg.sendDate)
+                ),
+                $('<li id="divider">')
+            );
+        } else {
+            $('#messages').append(
+                $('<li id="chatMessage">').append(
+                    $('<h4>').text(msg.name),
+                    $('<p style="font-size: 21px">').text('YO!'),
+                    $('<p align="right" style="font-size: 12px">').text(msg.sendDate)
+                ),
+                $('<li id="divider">')
+            );
+        }
+    };
+</script>
+</body>
+</html>

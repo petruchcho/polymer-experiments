@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Polymer Application</title>
+    <script src="/bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="bower_components/yo-message.js" type="text/javascript"></script>
+
+    <link rel="import" href="/bower_components/polymer/polymer.html">
+    <link rel="import" href="/bower_components/paper-toolbar/paper-toolbar.html">
+    <link rel="import" href="/bower_components/paper-material/paper-material.html">
+
+    <link rel="import" href="/bower_components/paper-input/paper-input.html">
+    <link rel="import" href="/bower_components/paper-button/paper-button.html">
+    <link rel="import" href="/bower_components/paper-fab/paper-fab.html">
+    <link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
+    <link rel="import" href="/bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+    <link rel="import" href="/bower_components/paper-button/paper-button.html">
+    <link rel="import" href="/bower_components/paper-listbox/paper-listbox.html">
+    <link rel="import" href="/bower_components/paper-item/paper-item.html">
+    <link rel="import" href="/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="/bower_components/paper-dropdown-menu/paper-dropdown-menu-light.html">
+    <link rel="import" href="/bower_components/paper-toggle-button/paper-toggle-button.html">
+    <link rel="import" href="/bower_components/iron-dropdown/iron-dropdown.html">
+
+    <link rel="import" href="/bower_components/paper-icon-button/paper-icon-button.html">
+
+
+    <link href="/bower_components/iron-icons/iron-icons.html" rel="import">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        margin: 0;
+        background-color: #ededed;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .chatContent {
+        height: 100%;
+        background-color: white;
+        left: 50%;
+        width: 50%;
+        -webkit-transform: translate(-50%, -0%);
+        transform: translate(-50%, -0%);
+
+        min-height: 100vh;
+        min-width: 800px;
+    }
+
+    /*::-webkit-scrollbar {*/
+    /*display: none;*/
+    /*}*/
+
+    #header {
+        position: fixed;
+        width: 100%;
+        z-index: 2000;
+    }
+
+    .flex-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #addPurchaseButton {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+    }
+
+    #categoriesButton {
+        position: fixed;
+        right: 24px;
+        bottom: 100px;
+        background-color: #0d47a1;
+    }
+
+    #chatMessage {
+        padding: 24px 24px 24px 180px;
+    }
+
+    #divider {
+        height: 1px;
+        background: #ededed;
+    }
+</style>
+
+<body>
+<div id="header">
+    <paper-toolbar>
+        <span class="title">Список покупок</span>
+    </paper-toolbar>
+</div>
+
+<paper-dialog id="addPurchaseDialog">
+    <h2>Покупка</h2>
+    <paper-dialog-scrollable>
+        <paper-input always-float-label label="Название" id="name"></paper-input>
+        <div>
+            <paper-input always-float-label label="Количество" id="count" style="width: 70%; float: left"></paper-input>
+            <paper-dropdown-menu style="width: 20%; float: right" id="countType">
+                <paper-listbox class="dropdown-content" selected="0" id="countTypeList">
+                    <paper-item>шт</paper-item>
+                    <paper-item>кг</paper-item>
+                    <paper-item>г</paper-item>
+                    <paper-item>л</paper-item>
+                </paper-listbox>
+            </paper-dropdown-menu>
+        </div>
+        <paper-input always-float-label label="Цена" id="cost" style="clear: both"></paper-input>
+        <div>
+            <p style="width: 70%; float: left">Куплен</p>
+            <paper-toggle-button style="width: 20%; float: right; padding: 14px"
+                                 align="right" id="purchased"></paper-toggle-button>
+        </div>
+        <paper-input always-float-label label="Комментарий" id="comment" style="clear: both"></paper-input>
+        <paper-dropdown-menu-light style="width: 100%">
+            <paper-listbox class="dropdown-content" id="categoriesDropdown" selected="0">
+            </paper-listbox>
+        </paper-dropdown-menu-light>
+    </paper-dialog-scrollable>
+    <div class="buttons">
+        <paper-button dialog-confirm autofocus id="save">Сохранить</paper-button>
+    </div>
+</paper-dialog>
+
+<paper-dialog id="addCategoryDialog">
+    <h2>Категория</h2>
+    <paper-dialog-scrollable>
+        <paper-input always-float-label label="Название категории" id="categoryName"></paper-input>
+    </paper-dialog-scrollable>
+    <div class="buttons">
+        <paper-button dialog-confirm autofocus id="saveCategory">Сохранить</paper-button>
+    </div>
+</paper-dialog>
+
+<paper-dialog id="categoriesDialog" style="min-width: 20%">
+    <h2>Категория</h2>
+    <paper-dialog-scrollable style="max-height: 50%">
+        <ul class="list" style="padding-top: 64px; list-style-type: none; -webkit-padding-start: 0" id="categories">
+        </ul>
+    </paper-dialog-scrollable>
+    <div class="buttons">
+        <paper-button dialog-confirm autofocus id="addCategory">Создать</paper-button>
+    </div>
+</paper-dialog>
+
+<div class="flex-container">
+    <paper-material elevation="3" class="chatContent">
+        <ul class="list" style="padding-top: 64px; list-style-type: none; -webkit-padding-start: 0" id="purchases">
+        </ul>
+    </paper-material>
+</div>
+
+<paper-fab id="categoriesButton" icon="settings">
+</paper-fab>
+
+<paper-fab id="addPurchaseButton" icon="add">
+</paper-fab>
+
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+<script>
+    $(function () {
+        var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+        var IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+
+        reloadPurchases();
+
+        function connectDB(f) {
+            var request = indexedDB.open("myBase", 1);
+            request.onerror = function (err) {
+                console.log(err);
+            };
+            request.onsuccess = function () {
+                f(request.result);
+            };
+            request.onupgradeneeded = function (e) {
+                e.currentTarget.result.createObjectStore("purchasesStore", {keyPath: "id", autoIncrement: true});
+                e.currentTarget.result.createObjectStore("categoriesStore", {keyPath: "name"});
+                connectDB(f);
+            }
+        }
+
+        var addPurchaseDialog = document.getElementById('addPurchaseDialog');
+        var categoriesDialog = document.getElementById('categoriesDialog');
+        var addCategoryDialog = document.getElementById('addCategoryDialog');
+
+        $('#addPurchaseButton').click(function () {
+            openAddPurchaseDialog();
+            return false;
+        });
+
+        $('#addCategory').click(function () {
+            openAddCategoryDialog();
+            return false;
+        });
+
+        $('#categoriesButton').click(function () {
+            openCategoriesDialog();
+            return false;
+        });
+
+        function openAddPurchaseDialog() {
+            $('#categoriesDropdown').empty();
+            document.getElementById('name').value = '';
+            document.getElementById('count').value = '';
+            document.getElementById('cost').value = '';
+            document.getElementById('purchased').checked = false;
+            document.getElementById('comment').value = '';
+
+
+            $('#save').off('click');
+            $('#save').click(function () {
+                var name = $('#name').val();
+                var count = $('#count').val();
+                var countType = $('#countType').val();
+                var cost = $('#cost').val();
+                var purchased = $('#purchased').checked;
+                var comment = $('#comment').val();
+
+                var purchase = {
+                    name: name,
+                    count: count,
+                    countType: countType,
+                    cost: cost,
+                    purchased: purchased,
+                    comment: comment
+                };
+
+                saveObject(purchase, "purchasesStore");
+                reloadPurchases();
+                return false;
+            });
+
+            connectDB(function (db) {
+                var rows = [],
+                    store = db.transaction(["categoriesStore"], "readonly").objectStore("categoriesStore");
+
+                store.openCursor().onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        rows.push(cursor.value);
+                        cursor.continue();
+                    }
+                    else {
+                        for (var i = 0; i < rows.length; i++) {
+                            $('#categoriesDropdown').append(
+                                $('<paper-item>').text(rows[i].name)
+                            )
+                        }
+                        addPurchaseDialog.toggle();
+                    }
+                };
+            });
+        }
+
+        function getCountTypeId(name) {
+            switch (name) {
+                case 'шт': return 0;
+                case 'кг': return 1;
+                case 'г': return 2;
+                case 'л': return 3;
+            }
+        }
+
+        function openAddPurchaseDialogWith(purchase) {
+            $('#categoriesDropdown').empty();
+            document.getElementById('name').value = purchase.name;
+            document.getElementById('count').value = purchase.count;
+            document.getElementById('cost').value = purchase.cost;
+            document.getElementById('countTypeList').selected = getCountTypeId(purchase.countType);
+            document.getElementById('purchased').checked = purchase.purchased;
+            document.getElementById('comment').value = purchase.comment;
+
+            console.log(purchase.purchased);
+
+
+            $('#save').off('click');
+            $('#save').click(function () {
+                var name = $('#name').val();
+                var count = $('#count').val();
+                var countType = $('#countType').val();
+                var cost = $('#cost').val();
+                var purchased = $('#purchased').checked;
+                var comment = $('#comment').val();
+
+                var newPurchase = {
+                    name: name,
+                    count: count,
+                    countType: countType,
+                    cost: cost,
+                    purchased: purchased,
+                    comment: comment
+                };
+
+                deleteObject(purchase.id, "purchasesStore");
+                saveObject(newPurchase, "purchasesStore");
+                reloadPurchases();
+                return false;
+            });
+
+            connectDB(function (db) {
+                var rows = [],
+                    store = db.transaction(["categoriesStore"], "readonly").objectStore("categoriesStore");
+
+                store.openCursor().onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        rows.push(cursor.value);
+                        cursor.continue();
+                    }
+                    else {
+                        for (var i = 0; i < rows.length; i++) {
+                            $('#categoriesDropdown').append(
+                                $('<paper-item>').text(rows[i].name)
+                            )
+                        }
+                        addPurchaseDialog.toggle();
+                    }
+                };
+            });
+        }
+
+        function reloadPurchases() {
+            $('#purchases').empty();
+            connectDB(function (db) {
+                var rows = [],
+                    store = db.transaction(["purchasesStore"], "readonly").objectStore("purchasesStore");
+
+                store.openCursor().onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        rows.push(cursor.value);
+                        cursor.continue();
+                    }
+                    else {
+                        for (var i = 0; i < rows.length; i++) {
+                            addPurchaseView(rows[i]);
+                        }
+                    }
+                };
+            });
+        }
+
+        function openAddCategoryDialog() {
+            document.getElementById('categoryName').value = '';
+            $('#saveCategory').off('click');
+            $('#saveCategory').click(function () {
+                var curName = $('#categoryName').val();
+                if (curName.length > 0) {
+                    var category = {
+                        name: curName
+                    };
+                    saveObject(category, "categoriesStore");
+                }
+                openCategoriesDialog();
+                return false;
+            });
+            addCategoryDialog.toggle();
+        }
+
+        function openEditCategoryDialog(category) {
+            document.getElementById('categoryName').value = category.name;
+            $('#saveCategory').off('click');
+            $('#saveCategory').click(function () {
+                var curName = $('#categoryName').val();
+                if (curName.length > 0) {
+                    var newCategory = {
+                        name: curName
+                    };
+                    deleteObject(category.name, "categoriesStore");
+                    saveObject(newCategory, "categoriesStore");
+                }
+                openCategoriesDialog();
+                return false;
+            });
+            addCategoryDialog.toggle();
+        }
+
+        function saveObject(category, store) {
+            connectDB(function (db) {
+                var request = db.transaction([store], "readwrite").objectStore(store).put(category);
+                request.onerror = logerr;
+                request.onsuccess = function () {
+                    return request.result;
+                }
+            });
+        }
+
+        function deleteObject(key, store) {
+            connectDB(function (db) {
+                var request = db.transaction([store], "readwrite").objectStore(store).delete(key);
+                request.onerror = logerr;
+                request.onsuccess = function () {
+                }
+            });
+        }
+
+        function openCategoriesDialog() {
+            $('#categories').empty();
+            connectDB(function (db) {
+                var rows = [],
+                    store = db.transaction(["categoriesStore"], "readonly").objectStore("categoriesStore");
+
+                store.openCursor().onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        rows.push(cursor.value);
+                        cursor.continue();
+                    }
+                    else {
+                        for (var i = 0; i < rows.length; i++) {
+                            addCategoryView(rows[i]);
+                        }
+                        if (!categoriesDialog.opened) {
+                            categoriesDialog.toggle();
+                        }
+                    }
+                };
+            });
+        }
+
+        function addCategoryView(category) {
+            var li = $('<li>').append(
+                $('<p style="float: left;">').text(category.name)
+            ).append(
+                $('<paper-icon-button icon="create" style="float: right;">').click(function () {
+                    openEditCategoryDialog(category);
+                })
+            ).append(
+                $('<paper-icon-button icon="delete" style="float: right;">').click(function () {
+                    deleteObject(category.name, "categoriesStore");
+                    openCategoriesDialog();
+                })
+            );
+            $('#categories').append(
+                li,
+                $('<li id="divider" style="clear: both">')
+            );
+        }
+
+        function addPurchaseView(purchase) {
+            var li = $('<li style="padding: 16px">').append(
+                $('<p style="float: left;">').text(purchase.name + ' ' + purchase.count + ' ' + purchase.countType)
+            ).append(
+                $('<paper-icon-button icon="create" style="float: right;">').click(function () {
+                    openAddPurchaseDialogWith(purchase);
+                })
+            ).append(
+                $('<paper-icon-button icon="delete" style="float: right;">').click(function () {
+                    deleteObject(purchase.id, "purchasesStore");
+                    reloadPurchases();
+                })
+            );
+            $('#purchases').append(
+                li,
+                $('<li id="divider" style="clear: both">')
+            );
+        }
+    });
+</script>
+</body>
+</html>
